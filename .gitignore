@@ -36,6 +36,12 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# Local design references (signed Notion URLs must not be committed)
+.reference/
+.mock-references.json
+test-results/
+playwright-report/
+
 # generated native folders
 /ios
 /android

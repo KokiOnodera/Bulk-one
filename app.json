@@ -2,6 +2,7 @@
   "expo": {
     "name": "bulk-one",
     "slug": "bulk-one",
+    "scheme": "bulk-one",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -20,6 +21,17 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-status-bar",
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#04090b",
+          "dark": { "backgroundColor": "#04090b" }
+        }
+      ]
+    ]
   }
 }
