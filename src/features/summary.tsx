@@ -25,6 +25,7 @@ export function useSummary() {
   };
 }
 export function NutritionSummary({ meals }: { meals: Entry[] }) {
+  const { approved } = useApp();
   return (
     <Card>
       <Heading>栄養バランス</Heading>
@@ -45,26 +46,36 @@ export function NutritionSummary({ meals }: { meals: Entry[] }) {
               label={String(label)}
               value={
                 known.length
-                  ? `${value.toFixed(0)} / ${target} ${unit}${known.length < meals.length ? "（一部未入力）" : ""}`
+                  ? `${value.toFixed(0)}${approved ? ` / ${target}` : ""} ${unit}${known.length < meals.length ? "（一部未入力）" : ""}`
                   : "未記録"
               }
             />
-            <View
-              style={{ height: 5, backgroundColor: "#edf1ef", borderRadius: 3 }}
-            >
+            {approved && (
               <View
                 style={{
-                  width: `${Math.min(100, (value / Number(target)) * 100)}%`,
                   height: 5,
-                  backgroundColor: colors.green,
+                  backgroundColor: "#edf1ef",
                   borderRadius: 3,
                 }}
-              />
-            </View>
+              >
+                <View
+                  style={{
+                    width: `${Math.min(100, (value / Number(target)) * 100)}%`,
+                    height: 5,
+                    backgroundColor: colors.green,
+                    borderRadius: 3,
+                  }}
+                />
+              </View>
+            )}
           </View>
         );
       })}
-      <Copy>目標は承認したデモプランの固定サンプル値です。</Copy>
+      <Copy>
+        {approved
+          ? "目標は承認したデモプランの固定サンプル値です。"
+          : "栄養目標はプラン作成後に表示します。食事の記録は今から利用できます。"}
+      </Copy>
     </Card>
   );
 }

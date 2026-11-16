@@ -21,11 +21,15 @@ export default function Login() {
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [repeat, setRepeat] = useState("");
-  const [show, setShow] = useState(false);
   const [error, setError] = useState("");
   const finish = () => {
-    app.setAuthenticated(true);
-    router.replace(app.approved ? "/home" : "/profile");
+    if (login) {
+      app.signInExistingDemo();
+      router.replace('/home');
+    } else {
+      app.registerDemo();
+      router.replace('/profile');
+    }
   };
   const next = () => {
     setError("");
@@ -47,6 +51,14 @@ export default function Login() {
   };
   return (
     <Screen
+      onBack={
+        step > 0
+          ? () => {
+              setError("");
+              setStep(step - 1);
+            }
+          : undefined
+      }
       title={
         login
           ? "おかえりなさい"
@@ -91,6 +103,7 @@ export default function Login() {
     >
       <Notice>
         UIデモです。認証サーバーへの接続・メール送信は行いません。実際のパスワードは入力しないでください。
+        {login ? '既存ログインでは設定済みのデモユーザーでホームを表示します。' : '新規登録後は初期設定へ進みます。'}
       </Notice>
       <Steps current={step} total={5} />
       {step === 0 ? (
@@ -149,18 +162,13 @@ export default function Login() {
             label="パスワード（デモ用・8文字以上）"
             value={password}
             onChangeText={setPassword}
-            secure={!show}
+            secure
           />
           <Field
             label="パスワード（確認）"
             value={repeat}
             onChangeText={setRepeat}
-            secure={!show}
-          />
-          <Button
-            secondary
-            title={show ? "パスワードを隠す" : "パスワードを表示"}
-            onPress={() => setShow(!show)}
+            secure
           />
         </>
       ) : (

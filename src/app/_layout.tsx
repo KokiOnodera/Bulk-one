@@ -3,21 +3,24 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AppProvider, useApp } from "../state/app-state";
 function Navigation() {
-  const { authenticated, approved } = useApp();
+  const { authenticated, profileCompleted } = useApp();
   return (
     <>
       <StatusBar style="dark" />
       <Stack
         screenOptions={{
           headerShown: false,
+          gestureEnabled: false,
           contentStyle: { backgroundColor: "#04090b" },
         }}
       >
         <Stack.Screen name="index" />
-        <Stack.Screen name="(auth)" />
+        <Stack.Protected guard={!authenticated}>
+          <Stack.Screen name="(auth)" />
+        </Stack.Protected>
         <Stack.Protected guard={authenticated}>
           <Stack.Screen name="(onboarding)" />
-          <Stack.Protected guard={approved}>
+          <Stack.Protected guard={profileCompleted}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="records" />
             <Stack.Screen name="workouts" />

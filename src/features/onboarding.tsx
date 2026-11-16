@@ -263,18 +263,23 @@ export function Onboarding({
       setStep(step + 1);
     } else if (params.edit) {
       router.dismissTo("/settings-tab");
+    } else if (section === "goal") {
+      app.completeProfile();
+      router.dismissTo("/home");
     } else {
-      router.push(
-        section === "profile"
-          ? "/goal"
-          : section === "goal"
-            ? "/constraints"
-            : "/generating",
-      );
+      router.push(section === "profile" ? "/goal" : "/generating");
     }
   };
   return (
     <Screen
+      onBack={
+        step > 0
+          ? () => {
+              setError("");
+              setStep(step - 1);
+            }
+          : undefined
+      }
       title={confirm ? "入力内容の確認" : steps[step].title}
       subtitle={
         confirm
@@ -289,9 +294,11 @@ export function Onboarding({
               confirm
                 ? params.edit
                   ? "変更を保存する"
-                  : section === "constraints"
-                    ? "この内容でプランを作成"
-                    : "この内容で次へ"
+                  : section === "goal"
+                    ? "ホームへ進む"
+                    : section === "constraints"
+                      ? "この内容でプランを作成"
+                      : "この内容で次へ"
                 : "次へ"
             }
             onPress={next}

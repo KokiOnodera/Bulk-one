@@ -13,6 +13,8 @@ import {
 } from "../components/ui";
 import { Entry, localDate, useApp } from "../state/app-state";
 import { MeasurementChart, NutritionSummary } from "./summary";
+import { MealPhoto } from "../components/meal-photo";
+import { CalendarDateTime } from "../components/calendar-date-time";
 export function History({
   kind,
   tab = false,
@@ -56,18 +58,15 @@ export function History({
         value={period}
         onChange={setPeriod}
       />
-      <Field
-        label={
-          period === "週別"
-            ? "週の最終日（YYYY-MM-DD）"
-            : "対象日（YYYY-MM-DD）"
-        }
+      <CalendarDateTime
+        label={period === "週別" ? "週の最終日" : "対象日"}
         value={date}
-        onChangeText={setDate}
+        onChange={setDate}
+        showTime={false}
       />
       {kind !== "measurement" && (
         <Field
-          label={kind === "meal" ? "食事名で絞り込み" : "種目名で絞り込み"}
+          label={kind === "meal" ? "料理名で絞り込み" : "種目名で絞り込み"}
           value={search}
           onChangeText={setSearch}
         />
@@ -141,7 +140,7 @@ export function RecordDetail() {
     date: "日時",
     category: "食事区分",
     status: "実施状況",
-    name: "名称",
+    name: entry.kind === "meal" ? "料理" : "名称",
     notes: "メモ",
     calories: "カロリー (kcal)",
     protein: "タンパク質 (g)",
@@ -170,6 +169,9 @@ export function RecordDetail() {
         : ["date", "name", "status", "minutes", "fatigue", "reason", "notes"];
   return (
     <Screen title="記録の詳細" subtitle="手動で入力した記録">
+      {entry.kind === "meal" && (
+        <MealPhoto uri={entry.data.photoUri || ""} readOnly />
+      )}
       <Card>
         {keys.map((key) => (
           <Row

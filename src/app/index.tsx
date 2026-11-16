@@ -1,15 +1,21 @@
 import { Redirect } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { LaunchSplash } from "../components/launch-splash";
 import { useApp } from "../state/app-state";
 export default function Index() {
-  const { authenticated, approved } = useApp();
-  const [finished, setFinished] = useState(false);
-  const complete = useCallback(() => setFinished(true), []);
-  if (!finished) return <LaunchSplash onComplete={complete} />;
+  const { authenticated, profileCompleted, launchFinished, setLaunchFinished } =
+    useApp();
+  const complete = useCallback(
+    () => setLaunchFinished(true),
+    [setLaunchFinished],
+  );
+  if (!authenticated && !launchFinished)
+    return <LaunchSplash onComplete={complete} />;
   return (
     <Redirect
-      href={!authenticated ? "/welcome" : approved ? "/home" : "/profile"}
+      href={
+        !authenticated ? "/welcome" : profileCompleted ? "/home" : "/profile"
+      }
     />
   );
 }

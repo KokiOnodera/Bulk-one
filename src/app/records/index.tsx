@@ -15,7 +15,7 @@ export default function Records() {
       <Menu
         icon="restaurant-outline"
         title="食事を記録"
-        detail="食事名・カロリー・PFCを手動入力"
+        detail="写真撮影・料理の選択・カロリー・PFC"
         onPress={() => router.push("/meals/new")}
       />
       <Menu

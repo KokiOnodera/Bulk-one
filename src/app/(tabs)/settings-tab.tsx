@@ -37,9 +37,9 @@ export default function Settings() {
       />
       <Menu
         icon="barbell-outline"
-        title="運動・食事条件"
-        detail="運動頻度・器具・生活スタイル"
-        onPress={() => router.push("/constraints?edit=1")}
+        title={app.approved ? "プランを変更する" : "プランを作成する"}
+        detail="運動頻度・器具・生活スタイルを設定"
+        onPress={() => router.push("/constraints")}
       />
       <Menu
         icon="document-text-outline"
