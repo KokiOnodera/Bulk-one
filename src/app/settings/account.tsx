@@ -22,6 +22,14 @@ export default function Account() {
   const [done, setDone] = useState(false);
   return (
     <Screen
+      onBack={
+        !done && step > 0
+          ? () => {
+              setError("");
+              setStep(step === 3 ? (selected ? 1 : 2) : 0);
+            }
+          : undefined
+      }
       title={
         done
           ? "デモデータをリセットしました"

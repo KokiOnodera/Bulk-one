@@ -16,6 +16,7 @@ export default function Preview() {
   const [consent, setConsent] = useState("");
   return (
     <Screen
+      onBack={step > 0 ? () => setStep(step - 1) : undefined}
       title={
         [
           "プランの概要",

@@ -11,6 +11,7 @@
       "supportsTablet": true
     },
     "android": {
+      "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -26,10 +27,28 @@
       "expo-status-bar",
       "expo-router",
       [
+        "expo-image-picker",
+        {
+          "cameraPermission": "食事の写真を撮影して記録するためにカメラを使用します。",
+          "photosPermission": "食事の写真を記録に添付するために写真を使用します。",
+          "microphonePermission": false
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#04090b",
-          "dark": { "backgroundColor": "#04090b" }
+          "dark": {
+            "backgroundColor": "#04090b"
+          }
+        }
+      ],
+      [
+        "@kingstinct/react-native-healthkit",
+        {
+          "NSHealthShareUsageDescription": "体重・体脂肪率・ワークアウトを読み取り、体組成と運動の記録に取り込むために使用します。",
+          "NSHealthUpdateUsageDescription": false,
+          "background": false
         }
       ]
     ]

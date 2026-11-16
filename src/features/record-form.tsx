@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { router, useLocalSearchParams } from "expo-router";
+import { useCallback, useState } from "react";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import {
   Button,
   Card,
@@ -9,15 +9,18 @@ import {
   Field,
   Heading,
   Icon,
+  Menu,
   Notice,
   Row,
   Screen,
   Steps,
 } from "../components/ui";
 import { Entry, Form, isNumber, localTime, useApp } from "../state/app-state";
+import { MealPhoto } from "../components/meal-photo";
+import { CalendarDateTime } from "../components/calendar-date-time";
+import { HealthcareImport } from "../components/healthcare-import";
 const fields = {
   meal: [
-    ["name", "食事名", "", "text"],
     ["calories", "カロリー", "kcal", "number"],
     ["protein", "タンパク質（任意）", "g", "optional"],
     ["fat", "脂質（任意）", "g", "optional"],
@@ -44,6 +47,8 @@ export function RecordForm({ kind }: { kind: Entry["kind"] }) {
     category: "",
     status: "実施",
     name: "",
+    dishIds: "[]",
+    photoUri: "",
     notes: "",
     calories: "",
     protein: "",
@@ -56,12 +61,29 @@ export function RecordForm({ kind }: { kind: Entry["kind"] }) {
     reason: "",
     sets: '[{"weight":"","reps":""}]',
   };
-  const [form, setForm] = useState<Form>({
-    ...blank,
-    ...(existing?.data || app.drafts[key]),
+  const [form, setForm] = useState<Form>(() => {
+    const saved = existing?.data || app.drafts[key];
+    return { ...blank, ...saved, date: saved?.date || localTime() };
   });
   const [stage, setStage] = useState(0);
+  const [savedId, setSavedId] = useState(id);
   const [error, setError] = useState("");
+  const selectionDraft = app.drafts[key];
+  useFocusEffect(
+    useCallback(() => {
+      if (kind !== "meal" || selectionDraft?.dishIds === undefined) return;
+      setForm((current) =>
+        current.name === selectionDraft.name &&
+        current.dishIds === selectionDraft.dishIds
+          ? current
+          : {
+              ...current,
+              name: selectionDraft.name || "",
+              dishIds: selectionDraft.dishIds,
+            },
+      );
+    }, [kind, selectionDraft]),
+  );
   const update = (v: Form) => {
     const next = { ...form, ...v };
     setForm(next);
@@ -80,6 +102,8 @@ export function RecordForm({ kind }: { kind: Entry["kind"] }) {
       return "過去または現在の有効な日時を YYYY-MM-DD HH:mm で入力してください。";
     if (kind === "meal" && !form.category)
       return "食事区分を選択してください。";
+    if (kind === "meal" && !form.name.trim())
+      return "料理を1つ以上選択してください。";
     for (const [key, label, , type] of fields[kind]) {
       if (type === "text" && !form[key]?.trim())
         return `${label}を入力してください。`;
@@ -119,13 +143,36 @@ export function RecordForm({ kind }: { kind: Entry["kind"] }) {
       return;
     }
     if (stage === 2) {
-      app.save(kind, form, id);
+      if (
+        (kind === "measurement" || kind === "workout") &&
+        form.healthkitId &&
+        app.entries.some(
+          (entry) =>
+            entry.kind === kind &&
+            entry.id !== savedId &&
+            entry.data.healthkitId === form.healthkitId,
+        )
+      ) {
+        setError(
+          "このヘルスケアのデータは既に保存されています。履歴から確認してください。",
+        );
+        return;
+      }
+      setSavedId(app.save(kind, form, savedId));
       app.setDraft(key, {});
       setStage(3);
     }
   };
   return (
     <Screen
+      onBack={
+        stage > 0
+          ? () => {
+              setError("");
+              setStage(stage - 1);
+            }
+          : undefined
+      }
       title={
         stage === 3
           ? `${title}を記録しました`
@@ -169,7 +216,8 @@ export function RecordForm({ kind }: { kind: Entry["kind"] }) {
                 secondary
                 title="続けて記録する"
                 onPress={() => {
-                  setForm(blank);
+                  setForm({ ...blank, date: localTime() });
+                  setSavedId(undefined);
                   setStage(0);
                 }}
               />
@@ -181,7 +229,9 @@ export function RecordForm({ kind }: { kind: Entry["kind"] }) {
             <Button
               title={
                 stage === 0
-                  ? "手動で入力する"
+                  ? kind === "meal"
+                    ? "料理を選択する"
+                    : "手動で入力する"
                   : stage === 1
                     ? "入力内容を確認する"
                     : "この内容で保存する"
@@ -199,7 +249,23 @@ export function RecordForm({ kind }: { kind: Entry["kind"] }) {
         )
       }
     >
+      {kind === "meal" && stage === 1 && (
+        <MealPhoto
+          uri={form.photoUri || ""}
+          onChange={(uri) => update({ photoUri: uri })}
+        />
+      )}
       <Steps current={stage} total={4} />
+      {(kind === "measurement" || kind === "workout") && stage < 2 && (
+        <HealthcareImport
+          kind={kind}
+          onSelect={(data) => {
+            update(data);
+            setError("");
+            setStage(1);
+          }}
+        />
+      )}
       {stage === 0 ? (
         <>
           <Card green>
@@ -213,13 +279,25 @@ export function RecordForm({ kind }: { kind: Entry["kind"] }) {
               }
               size={44}
             />
-            <Heading>{title}を手動で記録</Heading>
-            <Copy>測定値や実際に行った内容を、ご自身で入力します。</Copy>
+            <Heading>
+              {kind === "meal" ? "料理を選んで記録" : `${title}を手動で記録`}
+            </Heading>
+            <Copy>
+              {kind === "meal"
+                ? "食事区分と日時を設定し、食べた料理を選択してください。"
+                : "測定値や実際に行った内容を、ご自身で入力します。"}
+            </Copy>
           </Card>
-          <Field
-            label="記録日時（YYYY-MM-DD HH:mm）"
+          <CalendarDateTime
+            label={
+              kind === "meal"
+                ? "食事の日時"
+                : kind === "workout"
+                  ? "運動の日時"
+                  : "測定日時"
+            }
             value={form.date}
-            onChangeText={(v) => update({ date: v })}
+            onChange={(date) => update({ date })}
           />
           {kind === "meal" && (
             <Choices
@@ -228,10 +306,32 @@ export function RecordForm({ kind }: { kind: Entry["kind"] }) {
               onChange={(v) => update({ category: v })}
             />
           )}
-          <Notice>写真AI解析・食品検索・InBody連携は準備中です。</Notice>
+          <Notice>
+            {kind === "meal"
+              ? "料理DBは今後追加予定です。現在は仮の料理一覧から選択できます。"
+              : "写真AI解析・InBody連携は準備中です。"}
+          </Notice>
         </>
       ) : stage === 1 ? (
         <>
+          {kind === "meal" && (
+            <Card>
+              <Heading>料理</Heading>
+              <Menu
+                icon="search-outline"
+                title="料理を検索・選択する"
+                detail={form.name || "未選択・タップして料理検索画面を開く"}
+                onPress={() => {
+                  app.setDraft(key, form);
+                  router.push({
+                    pathname: "/meals/dish-search",
+                    params: { draftKey: key },
+                  });
+                }}
+              />
+              <Copy>仮の料理一覧です。カロリー・PFCは手入力してください。</Copy>
+            </Card>
+          )}
           {kind === "workout" && (
             <>
               <Heading>実施状況</Heading>
@@ -339,6 +439,7 @@ export function RecordForm({ kind }: { kind: Entry["kind"] }) {
             {stage === 3 && <Icon name="checkmark-circle" size={64} />}
             <Row label="日時" value={form.date} />
             {kind === "meal" && <Row label="食事区分" value={form.category} />}
+            {kind === "meal" && <Row label="選択した料理" value={form.name} />}
             {kind === "workout" && <Row label="実施状況" value={form.status} />}
             {fields[kind].map(([key, label, unit]) => (
               <Row

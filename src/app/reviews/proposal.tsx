@@ -14,6 +14,7 @@ export default function Proposal() {
   const [decision, setDecision] = useState("");
   return (
     <Screen
+      onBack={decision ? () => setDecision("") : undefined}
       title="次週のプラン変更案"
       subtitle="提案を確認してから、選びましょう。"
     >

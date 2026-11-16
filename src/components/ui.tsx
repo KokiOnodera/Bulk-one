@@ -1,4 +1,4 @@
-import { PropsWithChildren, ReactNode } from "react";
+import { PropsWithChildren, ReactNode, useState } from "react";
 import {
   ColorValue,
   KeyboardAvoidingView,
@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
+import { router, useCanGoBack } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 export const colors = {
@@ -46,12 +46,16 @@ export function Screen({
   children,
   footer,
   back = true,
+  onBack,
 }: PropsWithChildren<{
   title: string;
   subtitle?: string;
   footer?: ReactNode;
   back?: boolean;
+  onBack?: () => void;
 }>) {
+  const canGoBack = useCanGoBack();
+  const showBack = back && (Boolean(onBack) || canGoBack);
   return (
     <SafeAreaView style={s.safe} edges={["top", "left", "right", "bottom"]}>
       <KeyboardAvoidingView
@@ -59,13 +63,16 @@ export function Screen({
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <View style={s.top}>
-          {back ? (
+          {showBack ? (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="戻る"
               style={s.touch}
-              onPress={() =>
-                router.canGoBack() ? router.back() : router.replace("/")
+              onPress={
+                onBack ??
+                (() => {
+                  if (router.canGoBack()) router.back();
+                })
               }
             >
               <Icon name="chevron-back" color={colors.ink} />
@@ -85,8 +92,8 @@ export function Screen({
           {subtitle && <Text style={s.subtitle}>{subtitle}</Text>}
           {children}
         </ScrollView>
-        {footer && <View style={s.footer}>{footer}</View>}
       </KeyboardAvoidingView>
+      {footer && <View style={s.footer}>{footer}</View>}
     </SafeAreaView>
   );
 }
@@ -180,6 +187,7 @@ export function Field({
   placeholder?: string;
   multiline?: boolean;
 }) {
+  const [passwordVisible, setPasswordVisible] = useState(false);
   return (
     <View style={s.field}>
       <Text style={s.label}>{label}</Text>
@@ -196,13 +204,25 @@ export function Field({
                 : "default"
           }
           autoCapitalize="none"
-          secureTextEntry={secure}
+          secureTextEntry={Boolean(secure) && !passwordVisible}
+          autoCorrect={secure ? false : undefined}
           placeholder={placeholder}
           placeholderTextColor="#99a3a8"
           multiline={multiline}
           style={[s.input, multiline && { minHeight: 80 }]}
         />
         {unit && <Text style={s.copy}>{unit}</Text>}
+        {secure && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${label}を${passwordVisible ? '隠す' : '表示する'}`}
+            accessibilityState={{ selected: passwordVisible }}
+            onPress={() => setPasswordVisible(visible => !visible)}
+            style={{ minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Icon name={passwordVisible ? 'eye-off-outline' : 'eye-outline'} color={colors.muted} size={22} />
+          </Pressable>
+        )}
       </View>
     </View>
   );

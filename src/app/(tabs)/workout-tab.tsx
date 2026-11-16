@@ -1,7 +1,9 @@
 import { router } from "expo-router";
-import { Button, Menu, Screen } from "../../components/ui";
+import { Button, Card, Copy, Heading, Menu, Screen } from "../../components/ui";
 import { TrainingPlan } from "../../features/plan";
+import { useApp } from "../../state/app-state";
 export default function Workouts() {
+  const { approved } = useApp();
   return (
     <Screen
       back={false}
@@ -14,16 +16,34 @@ export default function Workouts() {
         detail="実施・変更・スキップを確認"
         onPress={() => router.push("/workouts/history")}
       />
-      <TrainingPlan />
+      {approved ? (
+        <TrainingPlan />
+      ) : (
+        <Card green>
+          <Heading>最初の運動プランを作りましょう</Heading>
+          <Copy>
+            運動を開始する前に、頻度・器具・生活スタイルに合うプランを確認します。
+          </Copy>
+        </Card>
+      )}
       <Button
-        title="今日の運動を記録する"
+        title={approved ? "今日の運動を記録する" : "運動を開始する"}
         onPress={() => router.push("/workouts/log")}
       />
-      <Menu
-        icon="document-text-outline"
-        title="承認済みプランの概要"
-        onPress={() => router.push("/settings/plan")}
-      />
+      {approved && (
+        <Menu
+          icon="document-text-outline"
+          title="承認済みプランの概要"
+          onPress={() => router.push("/settings/plan")}
+        />
+      )}
+      {approved && (
+        <Button
+          secondary
+          title="プランを変更する"
+          onPress={() => router.push("/constraints")}
+        />
+      )}
     </Screen>
   );
 }

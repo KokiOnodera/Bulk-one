@@ -28,16 +28,64 @@ const initial: Form = {
   work: "",
   notes: "",
 };
+// UI fixture for an existing account until the profile/active-plan APIs are connected.
+const existingDemoProfile: Form = {
+  ...initial,
+  name: "デモユーザー",
+  sex: "男性",
+  age: "28",
+  height: "175",
+  weight: "70",
+  experience: "初心者｜これから始めたい",
+  goal: "筋肉を増やしたい",
+  target: "72",
+  period: "3か月",
+  priorities: "筋力トレーニング、食事管理",
+  frequency: "週2〜3回",
+  duration: "45分",
+  place: "自宅",
+  equipment: "器具なし",
+  food: "自炊が多い",
+};
 function useStore() {
+  // Keep launch completion for the app lifetime, including logout/account reset.
+  const [launchFinished, setLaunchFinished] = useState(false);
   const [profile, setProfile] = useState<Form>(initial);
   const [authenticated, setAuthenticated] = useState(false);
   const [approved, setApproved] = useState(false);
+  const [profileCompleted, setProfileCompleted] = useState(false);
   const [activeProfile, setActiveProfile] = useState<Form>({});
   const [entries, setEntries] = useState<Entry[]>([]);
   const [drafts, setDrafts] = useState<Record<string, Form>>({});
   const [reviewDecision, setReviewDecision] = useState("");
   return {
+    launchFinished,
+    setLaunchFinished,
+    signInExistingDemo: () => {
+      if (!profileCompleted) {
+        setProfile({ ...existingDemoProfile });
+        setActiveProfile({ ...existingDemoProfile });
+        setEntries([]);
+        setDrafts({});
+        setReviewDecision("");
+        setApproved(true);
+      }
+      setProfileCompleted(true);
+      setAuthenticated(true);
+    },
+    registerDemo: () => {
+      setProfile({ ...initial });
+      setActiveProfile({});
+      setEntries([]);
+      setDrafts({});
+      setReviewDecision("");
+      setApproved(false);
+      setProfileCompleted(false);
+      setAuthenticated(true);
+    },
     profile,
+    profileCompleted,
+    completeProfile: () => setProfileCompleted(true),
     activeProfile,
     approvePlan: () => {
       setActiveProfile({ ...profile });
@@ -53,6 +101,7 @@ function useStore() {
     save: (kind: Entry["kind"], data: Form, id?: string) => {
       const entry = { kind, data, id: id || `${Date.now()}-${Math.random()}` };
       setEntries((e) => [entry, ...e.filter((x) => x.id !== entry.id)]);
+      return entry.id;
     },
     remove: (id: string) => setEntries((e) => e.filter((x) => x.id !== id)),
     reviewDecision,
@@ -63,6 +112,7 @@ function useStore() {
       setEntries([]);
       setDrafts({});
       setApproved(false);
+      setProfileCompleted(false);
       setAuthenticated(false);
       setReviewDecision("");
     },

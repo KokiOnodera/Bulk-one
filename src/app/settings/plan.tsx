@@ -1,9 +1,23 @@
 import { useState } from "react";
 import { router } from "expo-router";
-import { Button, Choices, Screen } from "../../components/ui";
+import { Button, Choices, Notice, Screen } from "../../components/ui";
+import { useApp } from "../../state/app-state";
 import { NutritionPlan, PlanSummary, TrainingPlan } from "../../features/plan";
 export default function Plan() {
   const [tab, setTab] = useState("概要");
+  const { approved } = useApp();
+  if (!approved)
+    return (
+      <Screen title="現在のプラン">
+        <Notice>
+          まだプランを作成していません。初めての運動を始めるときに作成できます。
+        </Notice>
+        <Button
+          title="プランを作成する"
+          onPress={() => router.push("/constraints")}
+        />
+      </Screen>
+    );
   return (
     <Screen title="現在のプラン" subtitle="承認済みのデモプラン">
       <Choices

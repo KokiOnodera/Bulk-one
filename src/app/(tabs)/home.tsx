@@ -68,7 +68,7 @@ export default function Home() {
       />
       <Menu
         title="食事を記録"
-        detail="手動でカロリー・PFCを入力"
+        detail="写真を撮影して料理を選択"
         icon="restaurant-outline"
         onPress={() => router.push("/meals/new")}
       />
@@ -85,11 +85,21 @@ export default function Home() {
       />
       <NutritionSummary meals={app.meals} />
       <Card>
-        <Heading>次のトレーニング</Heading>
-        <Copy>承認済みデモプラン ・ 上半身</Copy>
+        <Heading>
+          {app.approved ? "次のトレーニング" : "運動を始めましょう"}
+        </Heading>
+        <Copy>
+          {app.approved
+            ? "承認済みデモプラン ・ 上半身"
+            : "初回の運動開始時に、あなたに合ったプランを作成します。"}
+        </Copy>
         <Button
-          title="メニューを確認する"
-          onPress={() => router.navigate("/workout-tab")}
+          title={app.approved ? "メニューを確認する" : "運動を開始する"}
+          onPress={() =>
+            app.approved
+              ? router.navigate("/workout-tab")
+              : router.push("/constraints")
+          }
         />
       </Card>
       <Card green>

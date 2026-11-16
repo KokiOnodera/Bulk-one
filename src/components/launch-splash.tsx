@@ -3,6 +3,7 @@ import { ImageBackground, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { colors } from './ui';
 
 /** S-001-01: a brief branded introduction, not a simulated loading percentage. */
 export function LaunchSplash({ onComplete }: { onComplete: () => void }) {
@@ -54,15 +55,6 @@ export function LaunchSplash({ onComplete }: { onComplete: () => void }) {
         <View style={styles.footer}>
           <Text style={styles.description}>トレーニング × 食事 × 体組成</Text>
           <Text style={styles.support}>AIがあなたの身体づくりをサポート</Text>
-          <View
-            style={styles.marks}
-            accessible
-            accessibilityLabel="アプリを起動しています"
-          >
-            <View style={[styles.mark, styles.activeMark]} />
-            <View style={styles.mark} />
-            <View style={styles.mark} />
-          </View>
         </View>
       </SafeAreaView>
     </View>
@@ -89,7 +81,7 @@ const styles = StyleSheet.create({
     letterSpacing: -3,
   },
   one: {
-    color: "#fff",
+    color: colors.green,
     fontSize: 80,
     lineHeight: 85,
     fontWeight: "900",
@@ -114,12 +106,4 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
   },
   support: { color: "#d4d9d8", fontSize: 12, lineHeight: 20 },
-  marks: { flexDirection: "row", gap: 5, paddingTop: 26, paddingBottom: 8 },
-  mark: {
-    width: 33,
-    height: 4,
-    borderRadius: 4,
-    backgroundColor: "rgba(255,255,255,0.28)",
-  },
-  activeMark: { backgroundColor: "#fff" },
 });

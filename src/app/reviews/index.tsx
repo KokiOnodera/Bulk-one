@@ -32,6 +32,7 @@ export default function Reviews() {
   const period = `${start.toLocaleDateString("ja-JP")} 〜 ${end.toLocaleDateString("ja-JP")}`;
   return (
     <Screen
+      onBack={open ? () => setOpen(false) : undefined}
       title={open ? "週次レビュー詳細" : "週次レビュー"}
       subtitle="1週間の積み重ねを、次の一歩に。"
     >
